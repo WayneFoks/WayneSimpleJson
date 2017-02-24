@@ -8,7 +8,6 @@
 
 package com.company;
 
-
 import com.company.annotation.JsonField;
 import com.company.annotation.NullClass;
 import org.json.JSONArray;
@@ -31,18 +30,38 @@ public class SimpleJsonConverter {
                 continue;
             }
             String key = "";
+            Class elementClass = null;
             for (Annotation annotation : annotations) {
                 if (annotation instanceof JsonField) {
                     key = ((JsonField) annotation).name();
+                    elementClass = ((JsonField) annotation).elementClass();
                     break;
                 }
             }
             if (TextUtils.isEmpty(key)) {
                 continue;
             }
+
             field.setAccessible(true);
             try {
-                jsonObject.put(key, field.get(object));
+                if (Collection.class.isAssignableFrom(field.getType())) {
+                    JSONArray jsonArray = new JSONArray();
+                    Collection collection = (Collection) field.get(object);
+                    for (Object aCollection : collection) {
+                        if (elementClass != NullClass.class) {
+                            jsonArray.put(toJSON(aCollection));
+                        } else {
+                            jsonArray.put(aCollection);
+                        }
+                    }
+                } else {
+                    Object fieldObject = field.get(object);
+                    if (elementClass != NullClass.class && fieldObject != null) {
+                        jsonObject.put(key, toJSON(fieldObject));
+                    } else {
+                        jsonObject.put(key, fieldObject);
+                    }
+                }
             } catch (JSONException | IllegalAccessException e) {
                 e.printStackTrace();
             }
