@@ -10,12 +10,12 @@ package com.company;
 
 
 import com.company.annotation.JsonField;
+import com.company.annotation.NullClass;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,6 +58,21 @@ public class SimpleJsonConverter {
         }
     }
 
+    public static Object class2JSON(Class objectClass, Object object) {
+        if (!JSONObject.class.isInstance(object)) {
+            return null;
+        }
+        JSONObject jsonObject = (JSONObject) object;
+        Object classObject = null;
+        try {
+            classObject = objectClass.newInstance();
+            fromJSON(classObject, jsonObject);
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return classObject;
+    }
+
     public static void fromJSON(Object object, JSONObject jsonObject) {
         Class c = object.getClass();
         for (Field field : c.getDeclaredFields()) {
@@ -95,11 +110,20 @@ public class SimpleJsonConverter {
 
                     JSONArray jsonArray = (JSONArray) jsonValue;
                     for (int i = 0; i < jsonArray.length(); i++) {
-                        arrayFieldObject.add(jsonArray.get(i));
+                        if (elementClass != NullClass.class) {
+                            class2JSON(elementClass, jsonArray.get(i));
+                        } else {
+                            arrayFieldObject.add(jsonArray.get(i));
+                        }
                     }
                     field.set(object, arrayFieldObject);
                 } else {
-                    field.set(object, jsonValue);
+                    if (elementClass != NullClass.class) {
+                        Object json2ClassObject = class2JSON(elementClass, jsonValue);
+                        field.set(object, json2ClassObject);
+                    } else {
+                        field.set(object, jsonValue);
+                    }
                 }
             } catch (JSONException | IllegalAccessException | InstantiationException e) {
                 e.printStackTrace();

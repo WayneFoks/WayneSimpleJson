@@ -21,5 +21,5 @@ import java.lang.annotation.Target;
 public @interface JsonField {
     String name();
 
-    Class elementClass() default Object.class;
+    Class elementClass() default NullClass.class;
 }

@@ -199,6 +199,7 @@ public interface InfoFlowJsonConstDef {
     String WM_AUTHOR = "wm_author";
     String SEARCHTAG = "searchtag";
     String IS_FOLLOW = "is_follow";
+    String SUB_ITEM = "sub_item";
     //constellation card
     String CONSTELLATION = "constellations";
     String CONSTELLATION_OK = "ok";
