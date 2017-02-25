@@ -8,7 +8,7 @@
 
 package com.company;
 
-import com.company.annotation.JsonField;
+import com.wayne.json.annotation.JsonField;
 
 import java.util.List;
 
@@ -34,6 +34,6 @@ public class SubscribeItem {
     private String img;
     @JsonField(name = InfoFlowJsonConstDef.IS_FOLLOW)
     private boolean followed;
-    @JsonField(name = InfoFlowJsonConstDef.SUB_ITEM, elementClass = SubscribeItem.class)
+    @JsonField(name = InfoFlowJsonConstDef.SUB_ITEM, clazz = SubscribeItem.class)
     private SubscribeItem subItem;
 }

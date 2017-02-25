@@ -6,7 +6,7 @@
  * Author      : weihan.hwh@alibaba-inc.com
  */
 
-package com.company.annotation;
+package com.wayne.json.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,12 +14,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 仅支持基本类型，对应json的key
+ * 被注解的成员变量和json的值可以相互转换
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JsonField {
     String name();
 
-    Class elementClass() default NullClass.class;
+    Class clazz() default BasicClass.class;
 }
