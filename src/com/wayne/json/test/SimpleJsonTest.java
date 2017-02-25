@@ -12,7 +12,7 @@ public class SimpleJsonTest {
     public void parseJson() throws Exception {
         String input = Mocker.B;
         SubscribeItem subscribeItem = new SubscribeItem();
-        SimpleJsonUtils.fromJSON(subscribeItem, input);
+        SimpleJsonUtils.parseJson(subscribeItem, input);
         String jsonString = SimpleJson.toJson(subscribeItem).toString();
         System.out.println(input);
         System.out.println(jsonString);

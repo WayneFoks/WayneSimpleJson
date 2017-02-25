@@ -1,11 +1,3 @@
-/*
- * Copyright (C) 2004 - 2017 UCWeb Inc. All Rights Reserved.
- * Description :
- *
- * Creation    : 2017/02/22
- * Author      : weihan.hwh@alibaba-inc.com
- */
-
 package com.wayne.json;
 
 import com.wayne.json.annotation.BasicClass;
@@ -21,6 +13,12 @@ import java.util.Collection;
 
 public class SimpleJson {
 
+    /**
+     * java对象转成json对象
+     *
+     * @param object java对象
+     * @return json对象
+     */
     public static JSONObject toJson(Object object) {
         Class c = object.getClass();
         JSONObject jsonObject = new JSONObject();
@@ -45,25 +43,9 @@ public class SimpleJson {
             field.setAccessible(true);
             try {
                 if (Collection.class.isAssignableFrom(field.getType())) {
-                    JSONArray jsonArray = new JSONArray();
-                    Collection collection = (Collection) field.get(object);
-                    if (collection != null) {
-                        for (Object aCollection : collection) {
-                            if (elementClass != BasicClass.class) {
-                                jsonArray.put(toJson(aCollection));
-                            } else {
-                                jsonArray.put(aCollection);
-                            }
-                        }
-                        jsonObject.put(key, jsonArray);
-                    }
+                    doCollection2Json(object, jsonObject, field, key, elementClass);
                 } else {
-                    Object fieldObject = field.get(object);
-                    if (elementClass != BasicClass.class && fieldObject != null) {
-                        jsonObject.put(key, toJson(fieldObject));
-                    } else {
-                        jsonObject.put(key, fieldObject);
-                    }
+                    jsonObject.put(key, toJson(elementClass, field.get(object)));
                 }
             } catch (JSONException | IllegalAccessException e) {
                 e.printStackTrace();
@@ -72,6 +54,12 @@ public class SimpleJson {
         return jsonObject;
     }
 
+    /**
+     * json对象转java对象
+     *
+     * @param pojo       java对象
+     * @param jsonObject json对象
+     */
     public static void parseJson(Object pojo, JSONObject jsonObject) {
         Class c = pojo.getClass();
         for (Field field : c.getDeclaredFields()) {
@@ -80,11 +68,11 @@ public class SimpleJson {
                 continue;
             }
             String key = "";
-            Class elementClass = null;
+            Class clazz = null;
             for (Annotation annotation : annotations) {
                 if (annotation instanceof JsonField) {
                     key = ((JsonField) annotation).name();
-                    elementClass = ((JsonField) annotation).clazz();
+                    clazz = ((JsonField) annotation).clazz();
                     break;
                 }
             }
@@ -96,14 +84,9 @@ public class SimpleJson {
             try {
                 Object jsonValue = jsonObject.get(key);
                 if (jsonValue instanceof JSONArray && Collection.class.isAssignableFrom(field.getType())) {
-                    json2Collection(pojo, field, elementClass, (JSONArray) jsonValue);
+                    doJson2Collection(pojo, field, clazz, (JSONArray) jsonValue);
                 } else {
-                    if (elementClass != BasicClass.class) {
-                        Object json2ClassObject = parseJsonByClass(elementClass, jsonValue);
-                        field.set(pojo, json2ClassObject);
-                    } else {
-                        field.set(pojo, jsonValue);
-                    }
+                    field.set(pojo, parseJsonByClass(clazz, jsonValue));
                 }
             } catch (JSONException | IllegalAccessException e) {
                 e.printStackTrace();
@@ -130,6 +113,14 @@ public class SimpleJson {
         }
     }
 
+    private static Object toJson(Class clazz, Object fieldObject) {
+        if (clazz != BasicClass.class && fieldObject != null) {
+            return toJson(fieldObject);
+        } else {
+            return fieldObject;
+        }
+    }
+
     /**
      * 转化json为一个Collection对象
      *
@@ -139,7 +130,7 @@ public class SimpleJson {
      * @param jsonArray jsonArray
      */
     @SuppressWarnings("unchecked")
-    private static void json2Collection(Object pojo, Field field, Class clazz, JSONArray jsonArray) {
+    private static void doJson2Collection(Object pojo, Field field, Class clazz, JSONArray jsonArray) {
         try {
             Collection arrayFieldObject = doCollectionInstance(pojo, field);
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -149,6 +140,25 @@ public class SimpleJson {
             field.set(pojo, arrayFieldObject);
         } catch (IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 转化Collection为一个json对象
+     */
+    private static void doCollection2Json(Object object, JSONObject jsonObject, Field field, String key, Class elementClass) {
+        JSONArray jsonArray = new JSONArray();
+        Collection collection = null;
+        try {
+            collection = (Collection) field.get(object);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        if (collection != null) {
+            for (Object aCollection : collection) {
+                jsonArray.put(toJson(elementClass, aCollection));
+            }
+            jsonObject.put(key, jsonArray);
         }
     }
 
