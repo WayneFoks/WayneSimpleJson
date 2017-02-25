@@ -6,7 +6,7 @@
  * Author      : weihan.hwh@alibaba-inc.com
  */
 
-package com.company;
+package com.wayne.json.test;
 
 import com.wayne.json.annotation.JsonField;
 

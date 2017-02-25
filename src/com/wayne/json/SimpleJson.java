@@ -55,6 +55,7 @@ public class SimpleJson {
                                 jsonArray.put(aCollection);
                             }
                         }
+                        jsonObject.put(key, jsonArray);
                     }
                 } else {
                     Object fieldObject = field.get(object);
@@ -110,19 +111,23 @@ public class SimpleJson {
         }
     }
 
-    public static Object parseJsonByClass(Class clazz, Object aJsonObject) {
-        if (!JSONObject.class.isInstance(aJsonObject)) {
-            return null;
+    /**
+     * 转换一个json为java对象（BasicClass.class or not）或者普通值类型
+     */
+    public static Object parseJsonByClass(Class clazz, Object object) {
+        if (clazz != BasicClass.class) {
+            JSONObject jsonObject = (JSONObject) object;
+            Object classObject = null;
+            try {
+                classObject = clazz.newInstance();
+                parseJson(classObject, jsonObject);
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            return classObject;
+        } else {
+            return object;
         }
-        JSONObject jsonObject = (JSONObject) aJsonObject;
-        Object classObject = null;
-        try {
-            classObject = clazz.newInstance();
-            parseJson(classObject, jsonObject);
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return classObject;
     }
 
     /**
@@ -138,12 +143,7 @@ public class SimpleJson {
         try {
             Collection arrayFieldObject = doCollectionInstance(pojo, field);
             for (int i = 0; i < jsonArray.length(); i++) {
-                Object elementObject;
-                if (clazz != BasicClass.class) {
-                    elementObject = parseJsonByClass(clazz, jsonArray.get(i));
-                } else {
-                    elementObject = jsonArray.get(i);
-                }
+                Object elementObject = parseJsonByClass(clazz, jsonArray.get(i));
                 arrayFieldObject.add(elementObject);
             }
             field.set(pojo, arrayFieldObject);

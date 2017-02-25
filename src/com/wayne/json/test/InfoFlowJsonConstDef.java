@@ -11,7 +11,7 @@
  * ****************************************************************************
  */
 
-package com.company;
+package com.wayne.json.test;
 
 public interface InfoFlowJsonConstDef {
     String DATA = "data";
